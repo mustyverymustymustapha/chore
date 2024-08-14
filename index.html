@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chore Wheel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Chore Wheel</h1>
+    <div class="container">
+        <div class="wheel-container">
+            <h2>Chores</h2>
+            <div id="chore-wheel" class="wheel"></div>
+            <button onclick="spinWheel('chore')">Spin Chore Wheel</button>
+            <div>
+                <input type="text" id="chore-input" placeholder="Enter a chore">
+                <button onclick="addItem('chore')">Add Chore</button>
+            </div>
+        </div>
+        <div class="wheel-container">
+            <h2>Family Members</h2>
+            <div id="family-wheel" class="wheel"></div>
+            <button onclick="spinWheel('family')">Spin Family Wheel</button>
+            <div>
+                <input type="text" id="family-input" placeholder="Enter a family member">
+                <button onclick="addItem('family')">Add Family Member</button>
+            </div>
+        </div>
+    </div>
+    <div id="result"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
