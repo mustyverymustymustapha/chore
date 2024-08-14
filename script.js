@@ -24,7 +24,7 @@ function updateWheel(wheelType) {
 function spinWheel(wheelType) {
     const wheel = wheelType === 'chore' ? choreWheel : familyWheel;
     const items = wheelType === 'chore' ? chores : familyMembers;
-    const randomAngle = Math.floor(Math.random() * 360) + 720;
+    const randomAngle = Math.floor(Math.random() * 360) + 720; 
     wheel.style.transform = `rotate(${randomAngle}deg)`;
 
     setTimeout(() => {
@@ -37,3 +37,20 @@ function spinWheel(wheelType) {
         }
     }, 5000);
 }
+
+function addItem(wheelType) {
+    const input = document.getElementById(`${wheelType}-input`);
+    const newItem = input.value.trim();
+    if (newItem) {
+        if (wheelType === 'chore') {
+            chores.push(newItem);
+        } else {
+            familyMembers.push(newItem);
+        }
+        updateWheel(wheelType);
+        input.value = '';
+    }
+}
+
+updateWheel('chore');
+updateWheel('family');
