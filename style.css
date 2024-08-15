@@ -88,3 +88,8 @@ input, select {
   width: 200px;
   margin: 5px 0;
 }
+#weather-info {
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: bold;
+}

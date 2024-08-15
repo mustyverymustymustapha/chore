@@ -3,15 +3,18 @@ const familyWheel = document.getElementById('family-wheel');
 const result = document.getElementById('result');
 const trackerContent = document.getElementById('tracker-content');
 const leaderboardContent = document.getElementById('leaderboard-content');
+const weatherInfo = document.getElementById('weather-info');
 let chores = [
-    { name: 'Dishes', difficulty: 2 },
-    { name: 'Laundry', difficulty: 3 },
-    { name: 'Vacuuming', difficulty: 2 },
-    { name: 'Dusting', difficulty: 1 }
+    { name: 'Dishes', baseDifficulty: 2 },
+    { name: 'Laundry', baseDifficulty: 3 },
+    { name: 'Vacuuming', baseDifficulty: 2 },
+    { name: 'Dusting', baseDifficulty: 1 }
 ];
 let familyMembers = ['Mom', 'Dad', 'Sister', 'Brother'];
 let assignments = {};
 let familyPoints = {};
+let currentWeather = '';
+let currentTemperature = 0;
 function updateWheel(wheelType) {
     const wheel = wheelType === 'chore' ? choreWheel : familyWheel;
     const items = wheelType === 'chore' ? chores : familyMembers;
@@ -23,7 +26,8 @@ function updateWheel(wheelType) {
         element.style.transform = `rotate(${index * angleIncrement}deg)`;
         element.style.backgroundColor = `hsl(${index * (360 / items.length)}, 70%, 50%)`;
         if (wheelType === 'chore') {
-            element.innerHTML = `${item.name}<span class="difficulty-stars">${'★'.repeat(item.difficulty)}</span>`;
+            const adjustedDifficulty = calculateAdjustedDifficulty(item);
+            element.innerHTML = `${item.name}<span class="difficulty-stars">${'★'.repeat(adjustedDifficulty)}</span>`;
         } else {
             element.textContent = item;
         }
@@ -39,7 +43,8 @@ function spinWheel(wheelType) {
         const selectedIndex = Math.floor(((randomAngle % 360) / 360) * items.length);
         const selectedItem = items[selectedIndex];
         if (wheelType === 'chore') {
-            result.textContent = `Selected chore: ${selectedItem.name} (Difficulty: ${'★'.repeat(selectedItem.difficulty)})`;
+            const adjustedDifficulty = calculateAdjustedDifficulty(selectedItem);
+            result.textContent = `Selected chore: ${selectedItem.name} (Difficulty: ${'★'.repeat(adjustedDifficulty)})`;
         } else {
             result.textContent += ` | Selected family member: ${selectedItem}`;
             assignments[selectedItem] = result.textContent.split('|')[0].trim().replace('Selected chore: ', '');
@@ -52,8 +57,8 @@ function addItem(wheelType) {
     const newItem = input.value.trim();
     if (newItem) {
         if (wheelType === 'chore') {
-            const difficulty = parseInt(document.getElementById('chore-difficulty').value);
-            chores.push({ name: newItem, difficulty: difficulty });
+            const baseDifficulty = parseInt(document.getElementById('chore-base-difficulty').value);
+            chores.push({ name: newItem, baseDifficulty: baseDifficulty });
         } else {
             familyMembers.push(newItem);
             familyPoints[newItem] = 0;
@@ -82,7 +87,8 @@ function completeChore(member) {
     const choreName = assignments[member].split('(')[0].trim();
     const chore = chores.find(c => c.name === choreName);
     if (chore) {
-        familyPoints[member] = (familyPoints[member] || 0) + chore.difficulty;
+        const adjustedDifficulty = calculateAdjustedDifficulty(chore);
+        familyPoints[member] = (familyPoints[member] || 0) + adjustedDifficulty;
     }
     updateLeaderboard();
 }
@@ -112,7 +118,38 @@ function updateLeaderboard() {
         leaderboardContent.appendChild(item);
     });
 }
+function fetchWeather() {
+    const apiKey = '1321560a792c3786300c1109d5496297';
+    const city = 'Karachi';
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+        .then(response => response.json())
+        .then(data => {
+            currentWeather = data.weather[0].main;
+            currentTemperature = data.main.temp;
+            weatherInfo.textContent = `Current Weather: ${currentWeather}, Temperature: ${currentTemperature}°C`;
+            updateWheel('chore');
+        })
+        .catch(error => console.error('Error fetching weather:', error));
+}
+function calculateAdjustedDifficulty(chore) {
+    let adjustedDifficulty = chore.baseDifficulty;
+    const dayOfWeek = new Date().getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+        adjustedDifficulty -= 1;
+    }
+    if (currentWeather === 'Rain' || currentWeather === 'Snow') {
+        adjustedDifficulty += 1;
+    }
+    if (currentTemperature > 30) {
+        adjustedDifficulty += 1;
+    } else if (currentTemperature < 0) {
+        adjustedDifficulty += 2;
+    }
+    return Math.max(1, Math.min(5, adjustedDifficulty));
+}
 familyMembers.forEach(member => familyPoints[member] = 0);
+fetchWeather();
+setInterval(fetchWeather, 3600000);
 updateWheel('chore');
 updateWheel('family');
 updateLeaderboard();
