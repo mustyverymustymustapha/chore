@@ -2,6 +2,7 @@ const choreWheel = document.getElementById('chore-wheel');
 const familyWheel = document.getElementById('family-wheel');
 const result = document.getElementById('result');
 const trackerContent = document.getElementById('tracker-content');
+const leaderboardContent = document.getElementById('leaderboard-content');
 let chores = [
     { name: 'Dishes', difficulty: 2 },
     { name: 'Laundry', difficulty: 3 },
@@ -10,6 +11,7 @@ let chores = [
 ];
 let familyMembers = ['Mom', 'Dad', 'Sister', 'Brother'];
 let assignments = {};
+let familyPoints = {};
 function updateWheel(wheelType) {
     const wheel = wheelType === 'chore' ? choreWheel : familyWheel;
     const items = wheelType === 'chore' ? chores : familyMembers;
@@ -54,9 +56,11 @@ function addItem(wheelType) {
             chores.push({ name: newItem, difficulty: difficulty });
         } else {
             familyMembers.push(newItem);
+            familyPoints[newItem] = 0;
         }
         updateWheel(wheelType);
         input.value = '';
+        updateLeaderboard();
     }
 }
 function updateTracker() {
@@ -75,6 +79,12 @@ function completeChore(member) {
     const item = trackerContent.querySelector(`.tracker-item:has(span:contains('${member}'))`);
     item.classList.add('completed');
     item.querySelector('button').disabled = true;
+    const choreName = assignments[member].split('(')[0].trim();
+    const chore = chores.find(c => c.name === choreName);
+    if (chore) {
+        familyPoints[member] = (familyPoints[member] || 0) + chore.difficulty;
+    }
+    updateLeaderboard();
 }
 function resetTracker() {
     assignments = {};
@@ -87,9 +97,23 @@ function weeklyReset() {
     const timeUntilReset = nextSunday.getTime() - now.getTime();
     setTimeout(() => {
         resetTracker();
+        familyPoints = Object.fromEntries(Object.entries(familyPoints).map(([k, v]) => [k, 0]));
+        updateLeaderboard();
         weeklyReset();
     }, timeUntilReset);
 }
+function updateLeaderboard() {
+    leaderboardContent.innerHTML = '';
+    const sortedFamily = Object.entries(familyPoints).sort((a, b) => b[1] - a[1]);
+    sortedFamily.forEach(([member, points]) => {
+        const item = document.createElement('div');
+        item.className = 'leaderboard-item';
+        item.innerHTML = `<span>${member}</span><span>${points} points</span>`;
+        leaderboardContent.appendChild(item);
+    });
+}
+familyMembers.forEach(member => familyPoints[member] = 0);
 updateWheel('chore');
 updateWheel('family');
+updateLeaderboard();
 weeklyReset();
