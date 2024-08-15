@@ -2,38 +2,42 @@ const choreWheel = document.getElementById('chore-wheel');
 const familyWheel = document.getElementById('family-wheel');
 const result = document.getElementById('result');
 const trackerContent = document.getElementById('tracker-content');
-
-let chores = ['Dishes', 'Laundry', 'Vacuuming', 'Dusting'];
+let chores = [
+    { name: 'Dishes', difficulty: 2 },
+    { name: 'Laundry', difficulty: 3 },
+    { name: 'Vacuuming', difficulty: 2 },
+    { name: 'Dusting', difficulty: 1 }
+];
 let familyMembers = ['Mom', 'Dad', 'Sister', 'Brother'];
 let assignments = {};
-
 function updateWheel(wheelType) {
     const wheel = wheelType === 'chore' ? choreWheel : familyWheel;
     const items = wheelType === 'chore' ? chores : familyMembers;
     wheel.innerHTML = '';
     const angleIncrement = 360 / items.length;
-
     items.forEach((item, index) => {
         const element = document.createElement('div');
         element.className = 'wheel-item';
         element.style.transform = `rotate(${index * angleIncrement}deg)`;
         element.style.backgroundColor = `hsl(${index * (360 / items.length)}, 70%, 50%)`;
-        element.textContent = item;
+        if (wheelType === 'chore') {
+            element.innerHTML = `${item.name}<span class="difficulty-stars">${'★'.repeat(item.difficulty)}</span>`;
+        } else {
+            element.textContent = item;
+        }
         wheel.appendChild(element);
     });
 }
-
 function spinWheel(wheelType) {
     const wheel = wheelType === 'chore' ? choreWheel : familyWheel;
     const items = wheelType === 'chore' ? chores : familyMembers;
     const randomAngle = Math.floor(Math.random() * 360) + 720;
     wheel.style.transform = `rotate(${randomAngle}deg)`;
-
     setTimeout(() => {
         const selectedIndex = Math.floor(((randomAngle % 360) / 360) * items.length);
         const selectedItem = items[selectedIndex];
         if (wheelType === 'chore') {
-            result.textContent = `Selected chore: ${selectedItem}`;
+            result.textContent = `Selected chore: ${selectedItem.name} (Difficulty: ${'★'.repeat(selectedItem.difficulty)})`;
         } else {
             result.textContent += ` | Selected family member: ${selectedItem}`;
             assignments[selectedItem] = result.textContent.split('|')[0].trim().replace('Selected chore: ', '');
@@ -41,13 +45,13 @@ function spinWheel(wheelType) {
         }
     }, 5000);
 }
-
 function addItem(wheelType) {
     const input = document.getElementById(`${wheelType}-input`);
     const newItem = input.value.trim();
     if (newItem) {
         if (wheelType === 'chore') {
-            chores.push(newItem);
+            const difficulty = parseInt(document.getElementById('chore-difficulty').value);
+            chores.push({ name: newItem, difficulty: difficulty });
         } else {
             familyMembers.push(newItem);
         }
@@ -55,7 +59,6 @@ function addItem(wheelType) {
         input.value = '';
     }
 }
-
 function updateTracker() {
     trackerContent.innerHTML = '';
     for (const [member, chore] of Object.entries(assignments)) {
@@ -68,30 +71,25 @@ function updateTracker() {
         trackerContent.appendChild(item);
     }
 }
-
 function completeChore(member) {
     const item = trackerContent.querySelector(`.tracker-item:has(span:contains('${member}'))`);
     item.classList.add('completed');
     item.querySelector('button').disabled = true;
 }
-
 function resetTracker() {
     assignments = {};
     updateTracker();
 }
-
 function weeklyReset() {
     const now = new Date();
     const nextSunday = new Date(now.setDate(now.getDate() + (7 - now.getDay()) % 7));
     nextSunday.setHours(0, 0, 0, 0);
     const timeUntilReset = nextSunday.getTime() - now.getTime();
-
     setTimeout(() => {
         resetTracker();
         weeklyReset();
     }, timeUntilReset);
 }
-
 updateWheel('chore');
 updateWheel('family');
 weeklyReset();
