@@ -61,3 +61,25 @@ input {
   font-size: 18px;
   font-weight: bold;
 }
+
+#completion-tracker {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.tracker-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.tracker-item button {
+  margin-top: 0;
+  padding: 5px 10px;
+}
+
+.completed {
+  text-decoration: line-through;
+  color: #888;
+}
