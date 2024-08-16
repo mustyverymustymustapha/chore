@@ -5,6 +5,7 @@ const trackerContent = document.getElementById('tracker-content');
 const leaderboardContent = document.getElementById('leaderboard-content');
 const weatherInfo = document.getElementById('weather-info');
 const suggestionList = document.getElementById('suggestion-list');
+const scheduleTable = document.getElementById('schedule-table');
 let chores = [
     { name: 'Dishes', baseDifficulty: 2 },
     { name: 'Laundry', baseDifficulty: 3 },
@@ -16,6 +17,7 @@ let assignments = {};
 let familyPoints = {};
 let currentWeather = '';
 let currentTemperature = 0;
+let choreSchedule = [];
 const API_KEY = 'YOUR_API_KEY';
 const CITY = 'New York';
 function updateWheel(wheelType) {
@@ -69,6 +71,7 @@ function addItem(wheelType) {
         updateWheel(wheelType);
         input.value = '';
         updateLeaderboard();
+        generateChoreSchedule();
     }
 }
 function updateTracker() {
@@ -108,6 +111,7 @@ function weeklyReset() {
         resetTracker();
         familyPoints = Object.fromEntries(Object.entries(familyPoints).map(([k, v]) => [k, 0]));
         updateLeaderboard();
+        generateChoreSchedule();
         weeklyReset();
     }, timeUntilReset);
 }
@@ -170,10 +174,45 @@ function suggestChores() {
         suggestionList.appendChild(li);
     });
 }
+function generateChoreSchedule() {
+    choreSchedule = [];
+    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    let familyIndex = 0;
+    let choreIndex = 0;
+    for (let i = 0; i < 7; i++) {
+        const day = daysOfWeek[i];
+        const assignments = [];
+        for (let j = 0; j < familyMembers.length; j++) {
+            const familyMember = familyMembers[familyIndex];
+            const chore = chores[choreIndex];
+            assignments.push({ familyMember, chore: chore.name });
+            familyIndex = (familyIndex + 1) % familyMembers.length;
+            choreIndex = (choreIndex + 1) % chores.length;
+        }
+        choreSchedule.push({ day, assignments });
+    }
+    updateScheduleTable();
+}
+function updateScheduleTable() {
+    scheduleTable.innerHTML = '';
+    const headerRow = scheduleTable.insertRow();
+    headerRow.innerHTML = '<th>Day</th>' + familyMembers.map(member => `<th>${member}</th>`).join('');
+    choreSchedule.forEach(daySchedule => {
+        const row = scheduleTable.insertRow();
+        const dayCell = row.insertCell();
+        dayCell.textContent = daySchedule.day;
+        familyMembers.forEach(member => {
+            const cell = row.insertCell();
+            const assignment = daySchedule.assignments.find(a => a.familyMember === member);
+            cell.textContent = assignment ? assignment.chore : '';
+        });
+    });
+}
 familyMembers.forEach(member => familyPoints[member] = 0);
 fetchWeather();
 setInterval(fetchWeather, 3600000);
 updateWheel('chore');
 updateWheel('family');
 updateLeaderboard();
+generateChoreSchedule();
 weeklyReset();

@@ -107,3 +107,23 @@ input, select {
   background-color: #e0e0e0;
   border-radius: 5px;
 }
+#chore-schedule {
+  margin-top: 30px;
+  text-align: center;
+}
+#schedule-table {
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+#schedule-table th, #schedule-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+#schedule-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+#schedule-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
