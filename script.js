@@ -4,6 +4,7 @@ const result = document.getElementById('result');
 const trackerContent = document.getElementById('tracker-content');
 const leaderboardContent = document.getElementById('leaderboard-content');
 const weatherInfo = document.getElementById('weather-info');
+const suggestionList = document.getElementById('suggestion-list');
 let chores = [
     { name: 'Dishes', baseDifficulty: 2 },
     { name: 'Laundry', baseDifficulty: 3 },
@@ -15,6 +16,8 @@ let assignments = {};
 let familyPoints = {};
 let currentWeather = '';
 let currentTemperature = 0;
+const API_KEY = 'YOUR_API_KEY';
+const CITY = 'New York';
 function updateWheel(wheelType) {
     const wheel = wheelType === 'chore' ? choreWheel : familyWheel;
     const items = wheelType === 'chore' ? chores : familyMembers;
@@ -119,17 +122,19 @@ function updateLeaderboard() {
     });
 }
 function fetchWeather() {
-    const apiKey = '1321560a792c3786300c1109d5496297';
-    const city = 'Karachi';
-    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CITY}&appid=${API_KEY}&units=metric`)
         .then(response => response.json())
         .then(data => {
             currentWeather = data.weather[0].main;
             currentTemperature = data.main.temp;
             weatherInfo.textContent = `Current Weather: ${currentWeather}, Temperature: ${currentTemperature}°C`;
             updateWheel('chore');
+            suggestChores();
         })
-        .catch(error => console.error('Error fetching weather:', error));
+        .catch(error => {
+            console.error('Error fetching weather data:', error);
+            weatherInfo.textContent = 'Weather data unavailable';
+        });
 }
 function calculateAdjustedDifficulty(chore) {
     let adjustedDifficulty = chore.baseDifficulty;
@@ -146,6 +151,24 @@ function calculateAdjustedDifficulty(chore) {
         adjustedDifficulty += 2;
     }
     return Math.max(1, Math.min(5, adjustedDifficulty));
+}
+function suggestChores() {
+    const suggestions = [];
+    if (currentWeather === 'Clear' || currentWeather === 'Sunny') {
+        suggestions.push('Wash windows', 'Mow the lawn', 'Clean the garage');
+    } else if (currentWeather === 'Rain') {
+        suggestions.push('Organize closets', 'Clean the basement', 'Sort through old clothes');
+    } else if (currentWeather === 'Snow') {
+        suggestions.push('Shovel the driveway', 'Clean out the fridge', 'Organize the pantry');
+    } else {
+        suggestions.push('Dust furniture', 'Vacuum carpets', 'Clean bathrooms');
+    }
+    suggestionList.innerHTML = '';
+    suggestions.forEach(suggestion => {
+        const li = document.createElement('li');
+        li.textContent = suggestion;
+        suggestionList.appendChild(li);
+    });
 }
 familyMembers.forEach(member => familyPoints[member] = 0);
 fetchWeather();
