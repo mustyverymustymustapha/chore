@@ -6,6 +6,11 @@ const leaderboardContent = document.getElementById('leaderboard-content');
 const weatherInfo = document.getElementById('weather-info');
 const suggestionList = document.getElementById('suggestion-list');
 const scheduleTable = document.getElementById('schedule-table');
+const timerChoreSelect = document.getElementById('timer-chore-select');
+const timerFamilySelect = document.getElementById('timer-family-select');
+const timerDisplay = document.getElementById('timer-display');
+const timerStartStop = document.getElementById('timer-start-stop');
+const timerReset = document.getElementById('timer-reset');
 let chores = [
     { name: 'Dishes', baseDifficulty: 2 },
     { name: 'Laundry', baseDifficulty: 3 },
@@ -20,6 +25,9 @@ let currentTemperature = 0;
 let choreSchedule = [];
 const API_KEY = 'YOUR_API_KEY';
 const CITY = 'New York';
+let timerInterval;
+let timerSeconds = 0;
+let timerRunning = false;
 function updateWheel(wheelType) {
     const wheel = wheelType === 'chore' ? choreWheel : familyWheel;
     const items = wheelType === 'chore' ? chores : familyMembers;
@@ -72,6 +80,7 @@ function addItem(wheelType) {
         input.value = '';
         updateLeaderboard();
         generateChoreSchedule();
+        updateTimerSelects();
     }
 }
 function updateTracker() {
@@ -208,6 +217,50 @@ function updateScheduleTable() {
         });
     });
 }
+function updateTimerSelects() {
+    timerChoreSelect.innerHTML = '';
+    timerFamilySelect.innerHTML = '';
+    chores.forEach(chore => {
+        const option = document.createElement('option');
+        option.value = chore.name;
+        option.textContent = chore.name;
+        timerChoreSelect.appendChild(option);
+    });
+    familyMembers.forEach(member => {
+        const option = document.createElement('option');
+        option.value = member;
+        option.textContent = member;
+        timerFamilySelect.appendChild(option);
+    });
+}
+function startStopTimer() {
+    if (timerRunning) {
+        clearInterval(timerInterval);
+        timerStartStop.textContent = 'Start';
+        timerRunning = false;
+    } else {
+        timerInterval = setInterval(updateTimer, 1000);
+        timerStartStop.textContent = 'Stop';
+        timerRunning = true;
+    }
+}
+function updateTimer() {
+    timerSeconds++;
+    const hours = Math.floor(timerSeconds / 3600);
+    const minutes = Math.floor((timerSeconds % 3600) / 60);
+    const seconds = timerSeconds % 60;
+    timerDisplay.textContent = `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
+}
+function padZero(num) {
+    return num.toString().padStart(2, '0');
+}
+function resetTimer() {
+    clearInterval(timerInterval);
+    timerSeconds = 0;
+    timerDisplay.textContent = '00:00:00';
+    timerStartStop.textContent = 'Start';
+    timerRunning = false;
+}
 familyMembers.forEach(member => familyPoints[member] = 0);
 fetchWeather();
 setInterval(fetchWeather, 3600000);
@@ -216,3 +269,6 @@ updateWheel('family');
 updateLeaderboard();
 generateChoreSchedule();
 weeklyReset();
+updateTimerSelects();
+timerStartStop.addEventListener('click', startStopTimer);
+timerReset.addEventListener('click', resetTimer);

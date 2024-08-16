@@ -127,3 +127,15 @@ input, select {
 #schedule-table tr:nth-child(even) {
   background-color: #f9f9f9;
 }
+#task-timer {
+  margin-top: 30px;
+  text-align: center;
+}
+#timer-display {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+#timer-start-stop, #timer-reset {
+  margin: 5px;
+}
